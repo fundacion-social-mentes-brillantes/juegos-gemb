@@ -130,33 +130,79 @@ function popPoints(txt){ const p=document.createElement("div"); p.className="pop
 
 /* =========================== PORTAL =========================== */
 const GAMES = [
-  { id:"contrarreloj", emoji:"⏱️", color:"var(--gold)",  nombre:"Contrarreloj Emocional", desc:"2 minutos para responder bien y rápido sobre emociones. Ranking en línea." },
-  { id:"empareja",     emoji:"🧩", color:"var(--teal)",  nombre:"Empareja Emociones",     desc:"Une cada emoción con para qué nos sirve." },
-  { id:"memoria",      emoji:"🃏", color:"var(--rose)",  nombre:"Memoria Emocional",      desc:"Encuentra las parejas de emociones. Entrena tu atención." },
-  { id:"reflexion",    emoji:"🌱", color:"var(--violet)",nombre:"Rueda de la Reflexión",  desc:"Una pregunta para pensar y escribir. Tu diario personal y privado." }
+  { id:"contrarreloj", emoji:"⏱", code:"01", color:"var(--gold)", kicker:"Velocidad + intuición", nombre:"Pulso Emocional", desc:"Dos minutos. Muchas emociones. Confía en lo que sabes y responde antes de que se apague la estrella." },
+  { id:"empareja", emoji:"✦", code:"02", color:"var(--teal)", kicker:"Conecta + descubre", nombre:"Constelación de Emociones", desc:"Traza puentes entre cada emoción y el mensaje que trae para ti." },
+  { id:"memoria", emoji:"◉", code:"03", color:"var(--rose)", kicker:"Memoria + atención", nombre:"Ecos de la Memoria", desc:"Encuentra parejas escondidas en un jardín de símbolos emocionales." },
+  { id:"reflexion", emoji:"❋", code:"04", color:"var(--violet)", kicker:"Pausa + escritura", nombre:"Oráculo Interior", desc:"Una pregunta inesperada abre la puerta a tu diario personal y privado." }
 ];
 function renderPortal(){
   mount(`
-    <section class="hero">
-      <div class="halo"><div class="logo">🧠✨</div></div>
-      <h1>Juegos Mentes Brillantes</h1>
-      <p class="sub">Tu gimnasio emocional en juego: un espacio tranquilo para entrenar tus emociones, reflexionar y crecer… jugando.</p>
-      <div class="ritmo"><span>🌬️ <b>Respira</b></span><span>🎮 <b>Juega</b></span><span>🌱 <b>Crece</b></span></div>
-      <p class="disclaimer">💛 ${esc(C.aviso||"")}</p>
+    <section class="hero" id="inicio">
+      <div class="hero-copy">
+        <div class="eyebrow"><i></i> Tu aventura empieza por dentro</div>
+        <h1>Enciende tu mente.<br><em>Escucha lo que sientes.</em></h1>
+        <p class="sub">Un universo de juegos para reconocer tus emociones, crear nuevas historias y descubrir todo lo brillante que ya vive en ti.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#portales">Entrar al universo <span>↗</span></a>
+          <button class="btn btn-whisper" id="breatheBtn" type="button"><span class="breath-dot"></span> Respira conmigo</button>
+        </div>
+        <div class="micro-proof"><span>✦ Sin presión</span><span>✦ A tu ritmo</span><span>✦ Hecho para sentir</span></div>
+      </div>
+      <div class="hero-being" aria-label="La nueva mascota de Mentes Brillantes">
+        <div class="logo-rings"><i></i><i></i><i></i></div>
+        <img src="assets/mentes-brillantes-logo.png" alt="Árbol y cerebros sonrientes sobre un libro, símbolo de Mentes Brillantes" />
+        <span class="float-note n1">curiosidad</span><span class="float-note n2">calma</span><span class="float-note n3">valor</span>
+      </div>
+      <div class="scroll-signal"><span>DESLIZA PARA EXPLORAR</span><i></i></div>
     </section>
-    <div class="grid">
+    <section class="portal-intro" id="portales">
+      <div><span class="section-no">01 — TUS MUNDOS</span><h2>¿Qué quieres entrenar hoy?</h2></div>
+      <p>No hay respuestas perfectas aquí. Solo caminos distintos para conocerte mejor.</p>
+    </section>
+    <div class="grid world-grid">
       ${GAMES.map(g=>`
         <div class="game" data-go="${g.id}">
-          <span class="accent" style="background:${g.color}"></span>
-          <div class="emoji">${g.emoji}</div>
+          <div class="game-number">${g.code}</div>
+          <span class="accent" style="--accent:${g.color}"></span>
+          <div class="game-orb" style="--accent:${g.color}"><span>${g.emoji}</span><i></i></div>
+          <div class="game-kicker">${g.kicker}</div>
           <h3>${g.nombre}</h3>
           <p>${g.desc}</p>
-          <div class="go">Jugar →</div>
+          <div class="go">Abrir portal <span>↗</span></div>
         </div>`).join("")}
     </div>
-    <footer>Juegos GEMB · Fundación Social Mentes Brillantes · v1.0</footer>
+    <section class="story-teaser">
+      <div class="story-stars" aria-hidden="true">✦ <i>✦</i> <b>✦</b></div>
+      <div class="story-copy"><span class="section-no">02 — PRÓXIMAMENTE</span><h2>Una historia que cambia<br>con lo que tú eliges.</h2><p>Muy pronto abriremos un cuento interactivo donde cada emoción será una llave y cada decisión cambiará el camino.</p><button class="btn btn-story" type="button" id="storyBtn">Guardar mi lugar <span>→</span></button></div>
+      <div class="story-book"><div class="book-glow"></div><div class="book"><span></span><span></span></div><small>Tu historia aún<br>no está escrita</small></div>
+    </section>
+    <p class="disclaimer">${esc(C.aviso||"")}</p>
+    <footer><img src="assets/mentes-brillantes-logo.png" alt="" /><span><b>Mentes Brillantes</b><small>Juega · siente · crece</small></span><em>Hecho con emoción en Colombia ✦</em></footer>
   `);
   app$().querySelectorAll("[data-go]").forEach(c=> c.onclick=()=> location.hash="#"+c.dataset.go );
+  const breathe=$("#breatheBtn");
+  if(breathe) breathe.onclick=()=>{
+    breathe.classList.add("is-breathing");
+    breathe.innerHTML='<span class="breath-dot"></span> Inhala…';
+    setTimeout(()=>breathe.innerHTML='<span class="breath-dot"></span> Exhala…',3200);
+    setTimeout(()=>{breathe.classList.remove("is-breathing");breathe.innerHTML='<span class="breath-dot"></span> Respira conmigo';},6400);
+  };
+  const story=$("#storyBtn");
+  if(story) story.onclick=()=>{ story.innerHTML="✦ Tu lugar está guardado"; story.classList.add("saved"); };
+  initPortalMotion();
+}
+
+function initPortalMotion(){
+  const hero=app$().querySelector(".hero");
+  const being=app$().querySelector(".hero-being");
+  if(!hero||!being||matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  hero.onpointermove=e=>{
+    const r=hero.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+    being.style.setProperty("--mx",`${x*18}px`); being.style.setProperty("--my",`${y*14}px`);
+  };
+  app$().querySelectorAll(".game").forEach(card=> card.onpointermove=e=>{
+    const r=card.getBoundingClientRect(); card.style.setProperty("--x",`${e.clientX-r.left}px`); card.style.setProperty("--y",`${e.clientY-r.top}px`);
+  });
 }
 
 /* =========================== JUEGO 1: CONTRARRELOJ =========================== */
@@ -403,6 +449,11 @@ $("#brand").onclick=()=> location.hash="#portal";
 /* motas */
 (function(){ const c=$("#motes"); for(let i=0;i<24;i++){ const m=document.createElement("div"); m.className="mote";
   const s=3+Math.random()*5; m.style.cssText=`left:${Math.random()*100}%;width:${s}px;height:${s}px;animation-duration:${7+Math.random()*9}s;animation-delay:${-Math.random()*12}s`; c.appendChild(m);} })();
+
+const cursorAura=$("#cursorAura");
+if(cursorAura && matchMedia("(pointer:fine)").matches) window.addEventListener("pointermove",e=>{
+  cursorAura.style.transform=`translate3d(${e.clientX}px,${e.clientY}px,0)`;
+},{passive:true});
 
 renderTop();
 route();
