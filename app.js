@@ -25,7 +25,10 @@ const provider = new GoogleAuthProvider();
 const C = window.GEMB_CONTENT || {};
 const $ = s => document.querySelector(s);
 const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
-const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = s => String(s).replace(/[&<>"'`]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]));
+/* solo mostramos fotos servidas por Google (evita rastreadores/URLs maliciosas) */
+const safeImg = u => (typeof u === "string" && /^https:\/\/[a-z0-9.-]+\.googleusercontent\.com\//i.test(u)) ? esc(u) : "";
+const MAX_SCORE = 100000, MAX_NAME = 60;
 
 let currentUser = null;
 let timers = [];
@@ -44,7 +47,7 @@ onAuthStateChanged(auth, async u=>{
   if(u){
     try{
       await setDoc(doc(db,"users",u.uid),
-        { name:u.displayName||"Anónimo", email:u.email||"", photo:u.photoURL||"", lastSeen:serverTimestamp() },
+        { name:(u.displayName||"Anónimo").slice(0,MAX_NAME), photo:safeImg(u.photoURL), lastSeen:serverTimestamp() },
         { merge:true });
     }catch(e){ console.warn("perfil:", e.code||e); }
   }
@@ -54,9 +57,10 @@ onAuthStateChanged(auth, async u=>{
 function renderTop(){
   const box = $("#userbox");
   if(currentUser){
+    const ph = safeImg(currentUser.photoURL);
     box.innerHTML = `
-      <img src="${esc(currentUser.photoURL||'')}" alt="" referrerpolicy="no-referrer"/>
-      <span class="nm">${esc(currentUser.displayName||currentUser.email||'Tú')}</span>
+      ${ph?`<img src="${ph}" alt="" referrerpolicy="no-referrer"/>`:''}
+      <span class="nm">${esc(currentUser.displayName||'Tú')}</span>
       <button class="btn ghost small" id="logoutBtn">Salir</button>`;
     $("#logoutBtn").onclick = signOutUser;
   }else{
@@ -68,13 +72,14 @@ function renderTop(){
 /* =========================== DATOS (Firestore) =========================== */
 async function saveScore(game, score){
   if(!currentUser) return null;
+  score = Math.max(0, Math.min(MAX_SCORE, Math.round(Number(score)||0)));
   try{
     const ref = doc(db,"leaderboard",game,"entries",currentUser.uid);
     const snap = await getDoc(ref);
     const prev = snap.exists() ? (snap.data().score||0) : 0;
     if(score > prev){
-      await setDoc(ref,{ uid:currentUser.uid, name:currentUser.displayName||"Anónimo",
-        photo:currentUser.photoURL||"", score, updatedAt:serverTimestamp() });
+      await setDoc(ref,{ uid:currentUser.uid, name:(currentUser.displayName||"Anónimo").slice(0,MAX_NAME),
+        photo:safeImg(currentUser.photoURL), score, updatedAt:serverTimestamp() });
     }
     return Math.max(prev, score);
   }catch(e){ console.warn("saveScore:", e.code||e); return null; }
@@ -111,13 +116,15 @@ function backBtn(){ return `<div class="center back"><a class="btn ghost" href="
 function rankHTML(list, myScore){
   if(list===null) return `<p class="locked-msg">El ranking se activará cuando se publiquen las reglas de Firestore.</p>`;
   if(!list.length) return `<p class="locked-msg">Aún nadie tiene puntaje. ¡Sé el primero!</p>`;
-  return `<ul>${list.map((r,i)=>`
+  return `<ul>${list.map((r,i)=>{
+    const ph = safeImg(r.photo);
+    return `
     <li class="${currentUser&&r.uid===currentUser.uid?'me':''}">
       <span class="pos">${i+1}</span>
-      ${r.photo?`<img src="${esc(r.photo)}" referrerpolicy="no-referrer" alt=""/>`:''}
-      <span class="nm">${esc(r.name||'Anónimo')}</span>
-      <span class="pt">${(r.score||0).toLocaleString('es')}</span>
-    </li>`).join("")}</ul>`;
+      ${ph?`<img src="${ph}" referrerpolicy="no-referrer" alt=""/>`:''}
+      <span class="nm">${esc(String(r.name||'Anónimo').slice(0,MAX_NAME))}</span>
+      <span class="pt">${Math.min(MAX_SCORE,Number(r.score)||0).toLocaleString('es')}</span>
+    </li>`;}).join("")}</ul>`;
 }
 function popPoints(txt){ const p=document.createElement("div"); p.className="pop-pts"; p.textContent=txt; document.body.appendChild(p); setTimeout(()=>p.remove(),1000); }
 
@@ -131,9 +138,10 @@ const GAMES = [
 function renderPortal(){
   mount(`
     <section class="hero">
-      <div class="logo">🧠✨</div>
+      <div class="halo"><div class="logo">🧠✨</div></div>
       <h1>Juegos Mentes Brillantes</h1>
-      <p class="sub">El Gimnasio Emocional en juego: entrena tus emociones, reflexiona y crece, jugando.</p>
+      <p class="sub">Tu gimnasio emocional en juego: un espacio tranquilo para entrenar tus emociones, reflexionar y crecer… jugando.</p>
+      <div class="ritmo"><span>🌬️ <b>Respira</b></span><span>🎮 <b>Juega</b></span><span>🌱 <b>Crece</b></span></div>
       <p class="disclaimer">💛 ${esc(C.aviso||"")}</p>
     </section>
     <div class="grid">
