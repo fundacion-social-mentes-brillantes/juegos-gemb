@@ -4,7 +4,7 @@
    y funciona sin internet con la última versión vista).
    OJO: NO intercepta peticiones a otros dominios (Firebase/Auth/Fonts pasan directo).
    ============================================================================ */
-const CACHE = "gemb-v2-story";
+const CACHE = "gemb-v3-song";
 const SHELL = [
   "/",
   "/index.html",

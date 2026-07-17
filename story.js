@@ -40,6 +40,7 @@
   };
 
   let root = null;
+  let activeAudio = null;
   let timers = [];
   let state = load();
 
@@ -103,7 +104,15 @@
       speaker:"El Gran Libro", eyebrow:"UNA AVENTURA PARA SENTIR, ELEGIR Y CRECER",
       title:"El libro que perdió<br><em>sus emociones</em>",
       copy:`<p>Una noche, todas las palabras emocionales desaparecieron. Solo quedó un camino encendido… y está esperando tu decisión.</p><div class="story-meta"><span>✦ 8–10 minutos</span><span>✦ Tus elecciones cuentan</span><span>✦ Sin respuestas malas</span></div>`,
-      choices:`${hasProgress ? button("continue", done ? "Ver mi mapa de valentía" : "Continuar mi aventura", "", "primary") : button("new", "Abrir el libro", "", "primary")}${hasProgress ? button("new", "Empezar de nuevo", "", "quiet") : ""}`
+      choices:`<div class="story-song-card">
+        <button class="story-song-toggle" type="button" data-action="toggle-song" aria-pressed="false">
+          <span class="story-song-icon" aria-hidden="true">▶</span>
+          <span><b>Escuchar la canción-guía</b><small>Descubre cómo funciona la aventura</small></span>
+          <time class="story-song-time">0:00 / 2:14</time>
+        </button>
+        <div class="story-song-track" aria-hidden="true"><i></i></div>
+        <audio id="storyThemeAudio" src="assets/audio/abre-el-libro-elige-tu.mp3" preload="metadata" playsinline></audio>
+      </div>${hasProgress ? button("continue", done ? "Ver mi mapa de valentía" : "Continuar mi aventura", "", "primary") : button("new", "Saltar canción y abrir el libro", "", "primary")}${hasProgress ? button("new", "Empezar de nuevo", "", "quiet") : ""}`
     });
   }
 
@@ -212,8 +221,11 @@
   function render(){
     if(!root) return;
     clearStoryTimers();
+    if(activeAudio) activeAudio.pause();
+    activeAudio=null;
     const views = [intro, askName, chooseCompanion, enterForest, meetMurmullo, bodyCheck, breathe, chooseSupport, resolution, ending];
     root.innerHTML = (views[state.step] || intro)();
+    setupAudio();
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
@@ -229,11 +241,43 @@
     rememberTimer(()=>{ state.breaths=Math.min(3,state.breaths+1); save(); render(); },4000);
   }
 
+  function formatTime(seconds){
+    if(!Number.isFinite(seconds)) return "0:00";
+    const minutes=Math.floor(seconds/60), rest=Math.floor(seconds%60);
+    return `${minutes}:${String(rest).padStart(2,"0")}`;
+  }
+  function setupAudio(){
+    activeAudio=root ? root.querySelector("#storyThemeAudio") : null;
+    if(!activeAudio) return;
+    const card=root.querySelector(".story-song-card");
+    const toggle=root.querySelector(".story-song-toggle");
+    const icon=root.querySelector(".story-song-icon");
+    const label=toggle ? toggle.querySelector("small") : null;
+    const time=root.querySelector(".story-song-time");
+    const bar=root.querySelector(".story-song-track i");
+    const sync=()=>{
+      if(time) time.textContent=`${formatTime(activeAudio.currentTime)} / ${formatTime(activeAudio.duration || 134)}`;
+      if(bar) bar.style.width=`${activeAudio.duration ? (activeAudio.currentTime/activeAudio.duration)*100 : 0}%`;
+    };
+    activeAudio.addEventListener("loadedmetadata",sync);
+    activeAudio.addEventListener("timeupdate",sync);
+    activeAudio.addEventListener("play",()=>{ if(card) card.classList.add("is-playing"); if(toggle) toggle.setAttribute("aria-pressed","true"); if(icon) icon.textContent="Ⅱ"; if(label) label.textContent="Pausar canción"; });
+    activeAudio.addEventListener("pause",()=>{ if(card) card.classList.remove("is-playing"); if(toggle) toggle.setAttribute("aria-pressed","false"); if(icon) icon.textContent="▶"; if(label) label.textContent=activeAudio.ended ? "Escuchar otra vez" : "Continuar escuchando"; });
+    activeAudio.addEventListener("ended",()=>{ activeAudio.currentTime=0; sync(); if(label) label.textContent="Escuchar otra vez"; });
+  }
+  function toggleSong(){
+    if(!activeAudio) setupAudio();
+    if(!activeAudio) return;
+    if(activeAudio.paused) activeAudio.play().catch(()=>{});
+    else activeAudio.pause();
+  }
+
   function onClick(event){
     const el=event.target.closest("[data-action]");
     if(!el || !root || !root.contains(el)) return;
     const action=el.dataset.action, value=el.dataset.value;
-    if(action==="new") newStory();
+    if(action==="toggle-song") toggleSong();
+    else if(action==="new") newStory();
     else if(action==="continue") go(state.completed ? 9 : Math.max(1,state.step));
     else if(action==="goto") go(value);
     else if(action==="companion"){ state.companion=value; go(3); }
@@ -265,10 +309,12 @@
   function mount(container){
     destroy(); root=container; state=load();
     root.addEventListener("click",onClick); root.addEventListener("submit",onSubmit);
-    preload(); root.innerHTML=intro(); window.scrollTo({top:0,behavior:"smooth"});
+    preload(); root.innerHTML=intro(); setupAudio(); window.scrollTo({top:0,behavior:"smooth"});
   }
   function destroy(){
     clearStoryTimers();
+    if(activeAudio) activeAudio.pause();
+    activeAudio=null;
     if(root){ root.removeEventListener("click",onClick); root.removeEventListener("submit",onSubmit); }
     root=null;
   }
