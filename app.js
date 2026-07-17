@@ -119,7 +119,9 @@ function mount(html){
 function loginNeeded(){ return `<p class="locked-msg">Para guardar tu progreso y aparecer en el ranking, <b>entra con Google</b> arriba a la derecha. También puedes jugar en modo práctica.</p>`; }
 function backBtn(){ return `<div class="center back"><a class="btn ghost" href="#portal">← Volver al inicio</a></div>`; }
 function rankHTML(list, myScore){
-  if(list===null) return `<p class="locked-msg">El ranking se activará cuando se publiquen las reglas de Firestore.</p>`;
+  if(list===null) return currentUser
+    ? `<p class="locked-msg">No pudimos cargar el ranking en este momento. Vuelve a intentarlo en unos segundos. 🌙</p>`
+    : `<p class="locked-msg">🔒 <b>Entra con Google</b> (arriba a la derecha) para guardar tu puntaje y aparecer en el ranking.</p>`;
   if(!list.length) return `<p class="locked-msg">Aún nadie tiene puntaje. ¡Sé el primero!</p>`;
   return `<ul>${list.map((r,i)=>{
     const ph = safeImg(r.photo);

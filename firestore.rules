@@ -1,11 +1,12 @@
 rules_version = '2';
 
 // ============================================================================
-// Reglas de seguridad de Cloud Firestore — Juegos GEMB  (v3, auditadas)
+// Reglas de seguridad de Cloud Firestore — Juegos GEMB  (v4, auditadas)
 // Publícalas en: Firebase Console → Firestore Database → pestaña "Reglas".
-// v3: perfil privado (solo el dueño lo lee), validación estricta de datos,
-// topes de puntaje POR JUEGO, solo se puede MEJORAR el propio récord,
-// hora del servidor obligatoria y lista blanca de juegos.
+// v4: perfil privado (solo el dueño lo lee), validación estricta de datos,
+// tope de puntaje universal, solo se puede MEJORAR el propio récord,
+// hora del servidor obligatoria. SIN lista blanca de juegos: cualquier juego
+// NUEVO con ranking funciona automáticamente (no hay que tocar las reglas).
 // ============================================================================
 
 service cloud.firestore {
@@ -53,9 +54,9 @@ service cloud.firestore {
           && (request.resource.data.photo == '' || request.resource.data.photo.matches('https://.*'))
           && request.resource.data.score is int
           && request.resource.data.score >= 0
-          && request.resource.data.score <= (game == 'contrarreloj' ? 100000 : 2500)
+          && request.resource.data.score <= 1000000
           && request.resource.data.updatedAt == request.time
-          && game in ['contrarreloj', 'empareja', 'memoria'];
+          && game.size() > 0 && game.size() <= 40;
       }
 
       // Cualquier usuario autenticado puede VER el ranking
