@@ -4,18 +4,21 @@
    y funciona sin internet con la última versión vista).
    OJO: NO intercepta peticiones a otros dominios (Firebase/Auth/Fonts pasan directo).
    ============================================================================ */
-const CACHE = "gemb-v1";
+const CACHE = "gemb-v2-story";
 const SHELL = [
   "/",
   "/index.html",
   "/styles.css",
+  "/story.css",
   "/app.js",
+  "/story.js",
   "/content.js",
   "/manifest.json",
   "/assets/logo-160.webp",
   "/assets/logo-640.webp",
   "/assets/brilliant-world.webp",
-  "/assets/icon-192.png"
+  "/assets/icon-192.png",
+  "/assets/story/story-cover.webp"
 ];
 
 self.addEventListener("install", e => {

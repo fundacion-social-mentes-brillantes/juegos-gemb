@@ -110,7 +110,12 @@ async function loadReflections(){
 
 /* =========================== HELPERS UI =========================== */
 const app$ = () => $("#app");
-function mount(html){ clearTimers(); app$().innerHTML = html; window.scrollTo({top:0,behavior:"smooth"}); }
+function mount(html){
+  clearTimers();
+  if(window.GEMB_STORY) window.GEMB_STORY.destroy();
+  app$().innerHTML = html;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 function loginNeeded(){ return `<p class="locked-msg">Para guardar tu progreso y aparecer en el ranking, <b>entra con Google</b> arriba a la derecha. También puedes jugar en modo práctica.</p>`; }
 function backBtn(){ return `<div class="center back"><a class="btn ghost" href="#portal">← Volver al inicio</a></div>`; }
 function rankHTML(list, myScore){
@@ -171,10 +176,10 @@ function renderPortal(){
           <div class="go">Abrir portal <span>↗</span></div>
         </div>`).join("")}
     </div>
-    <section class="story-teaser">
+    <section class="story-teaser story-is-live">
       <div class="story-stars" aria-hidden="true">✦ <i>✦</i> <b>✦</b></div>
-      <div class="story-copy"><span class="section-no">02 — PRÓXIMAMENTE</span><h2>Una historia que cambia<br>con lo que tú eliges.</h2><p>Muy pronto abriremos un cuento interactivo donde cada emoción será una llave y cada decisión cambiará el camino.</p><button class="btn btn-story" type="button" id="storyBtn">Guardar mi lugar <span>→</span></button></div>
-      <div class="story-book"><div class="book-glow"></div><div class="book"><span></span><span></span></div><small>Tu historia aún<br>no está escrita</small></div>
+      <div class="story-copy"><span class="section-no">02 — CUENTO INTERACTIVO · YA DISPONIBLE</span><h2>El libro que perdió<br>sus emociones.</h2><p>Entra al Bosque de los Ecos, conoce a Murmullo y descubre que sentir miedo no te hace menos valiente. Tus decisiones transforman la historia.</p><button class="btn btn-story" type="button" id="storyBtn">Comenzar el prólogo <span>→</span></button></div>
+      <div class="story-preview"><img src="assets/story/story-cover.webp" alt="Un libro mágico abre caminos de colores hacia mundos emocionales" loading="lazy" /><span>8–10 min · guarda tu avance</span></div>
     </section>
     <p class="disclaimer">${esc(C.aviso||"")}</p>
     <footer><img src="assets/logo-160.webp" alt="" /><span><b>Mentes Brillantes</b><small>Juega · siente · crece</small></span><em>Hecho con emoción en Colombia ✦</em></footer>
@@ -188,7 +193,7 @@ function renderPortal(){
     setTimeout(()=>{breathe.classList.remove("is-breathing");breathe.innerHTML='<span class="breath-dot"></span> Respira conmigo';},6400);
   };
   const story=$("#storyBtn");
-  if(story) story.onclick=()=>{ story.innerHTML="✦ Tu lugar está guardado"; story.classList.add("saved"); };
+  if(story) story.onclick=()=>{ location.hash="#cuento"; };
   initPortalMotion();
 }
 
@@ -440,6 +445,7 @@ function route(){
     case "empareja":     renderEmpareja(); break;
     case "memoria":      renderMemoria(); break;
     case "reflexion":    renderReflexion(); break;
+    case "cuento":       window.GEMB_STORY ? window.GEMB_STORY.mount(app$()) : renderPortal(); break;
     default:             renderPortal();
   }
 }
