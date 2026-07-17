@@ -150,7 +150,7 @@ function renderPortal(){
       </div>
       <div class="hero-being" aria-label="La nueva mascota de Mentes Brillantes">
         <div class="logo-rings"><i></i><i></i><i></i></div>
-        <img src="assets/mentes-brillantes-logo.png" alt="Árbol y cerebros sonrientes sobre un libro, símbolo de Mentes Brillantes" />
+        <img src="assets/logo-640.webp" alt="Árbol y cerebros sonrientes sobre un libro, símbolo de Mentes Brillantes" />
         <span class="float-note n1">curiosidad</span><span class="float-note n2">calma</span><span class="float-note n3">valor</span>
       </div>
       <div class="scroll-signal"><span>DESLIZA PARA EXPLORAR</span><i></i></div>
@@ -177,7 +177,7 @@ function renderPortal(){
       <div class="story-book"><div class="book-glow"></div><div class="book"><span></span><span></span></div><small>Tu historia aún<br>no está escrita</small></div>
     </section>
     <p class="disclaimer">${esc(C.aviso||"")}</p>
-    <footer><img src="assets/mentes-brillantes-logo.png" alt="" /><span><b>Mentes Brillantes</b><small>Juega · siente · crece</small></span><em>Hecho con emoción en Colombia ✦</em></footer>
+    <footer><img src="assets/logo-160.webp" alt="" /><span><b>Mentes Brillantes</b><small>Juega · siente · crece</small></span><em>Hecho con emoción en Colombia ✦</em></footer>
   `);
   app$().querySelectorAll("[data-go]").forEach(c=> c.onclick=()=> location.hash="#"+c.dataset.go );
   const breathe=$("#breatheBtn");
@@ -454,6 +454,27 @@ const cursorAura=$("#cursorAura");
 if(cursorAura && matchMedia("(pointer:fine)").matches) window.addEventListener("pointermove",e=>{
   cursorAura.style.transform=`translate3d(${e.clientX}px,${e.clientY}px,0)`;
 },{passive:true});
+
+/* ===================== PWA: service worker + instalación ===================== */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=> navigator.serviceWorker.register("/sw.js").catch(e=>console.warn("sw:",e)) );
+}
+const installBtn=$("#installBtn"), iosSheet=$("#iosSheet");
+const isStandalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone===true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault(); deferredPrompt=e;
+  if(!isStandalone && installBtn) installBtn.hidden=false;   // Android/Chrome: instalación con un toque
+});
+if(isIOS && !isStandalone && installBtn) installBtn.hidden=false;  // iPhone: guía paso a paso
+if(installBtn) installBtn.onclick=async()=>{
+  if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; installBtn.hidden=true; }
+  else if(iosSheet){ iosSheet.hidden=false; }
+};
+const iosClose=$("#iosClose");
+if(iosClose) iosClose.onclick=()=> iosSheet.hidden=true;
+window.addEventListener("appinstalled",()=>{ if(installBtn) installBtn.hidden=true; });
 
 renderTop();
 route();

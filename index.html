@@ -6,7 +6,16 @@
 <title>Mentes Brillantes · El universo emocional</title>
 <meta name="description" content="Plataforma de juegos emocionales de Gimnasio Emocional Mentes Brillantes: entrena tus emociones, reflexiona y crece jugando." />
 <meta name="theme-color" content="#160d35" />
-<link rel="icon" type="image/png" href="assets/mentes-brillantes-logo.png" />
+
+<!-- PWA: instalable en Android/iOS -->
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Mentes Brillantes" />
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -20,14 +29,28 @@
 <div class="wrap">
   <div class="topbar">
     <div class="brand" id="brand">
-      <span class="brand-orbit"><img src="assets/mentes-brillantes-logo.png" alt="" /></span>
+      <span class="brand-orbit"><img src="assets/logo-160.webp" alt="" /></span>
       <span><b>Mentes Brillantes</b><small>GIMNASIO EMOCIONAL</small></span>
     </div>
     <a class="nav-worlds" href="#portales">Explorar mundos <span>↓</span></a>
     <div class="userbox" id="userbox"></div>
+    <button class="btn small install-btn" id="installBtn" hidden type="button">📲 Instalar</button>
   </div>
 
   <main id="app"><!-- render dinámico --></main>
+</div>
+
+<!-- Guía de instalación para iPhone (Safari no tiene botón automático) -->
+<div class="ios-sheet" id="iosSheet" hidden>
+  <div class="ios-card">
+    <h3>📲 Instalar en tu iPhone</h3>
+    <ol>
+      <li>Toca el botón <b>Compartir</b> <span class="ios-ico">⬆️</span> (abajo en Safari)</li>
+      <li>Busca y toca <b>“Añadir a pantalla de inicio”</b></li>
+      <li>Toca <b>Añadir</b> — ¡y listo! 🎉</li>
+    </ol>
+    <button class="btn" id="iosClose" type="button">Entendido</button>
+  </div>
 </div>
 
 <script src="content.js"></script>
