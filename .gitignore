@@ -1,5 +1,7 @@
 node_modules/
 .vercel
+.playwright-cli/
+output/
 .DS_Store
 Thumbs.db
 *.log
