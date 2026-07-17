@@ -41,3 +41,5 @@ desplegado en **Vercel**: cada `git push` publica una nueva versión automática
 
 ---
 Fundación Social Mentes Brillantes · Proyecto `juegos-gemb`
+
+<!-- deploy automático conectado a GitHub · 2026-07-16 -->
